@@ -1,0 +1,56 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.8.0/jszip.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.8.0/xlsx.js"></script>
+</head>
+<body>
+<div id="drop_zone" style="border: 2px dashed #0087F7; height: 50px; text-align: center; line-height: 50px;">Drop excel file here</div>
+<output id="list"></output>
+</body>
+<script type="text/javascript">
+  function handleDragOver(evt) {
+    evt.stopPropagation();
+    evt.preventDefault();
+    evt.dataTransfer.dropEffect = 'copy'; // Explicitly show this is a copy.
+  }
+
+  /* set up drag-and-drop event */
+function handleDrop(e) {
+  e.stopPropagation();
+  e.preventDefault();
+  document.getElementById('list').innerHTML = '';
+  var files = e.dataTransfer.files;
+  var i,f;
+  for (i = 0, f = files[i]; i != files.length; ++i) {
+    var reader = new FileReader();
+    var name = f.name;
+    reader.onload = function(e) {
+      var data = e.target.result;
+
+      /* if binary string, read with type 'binary' */
+      var workbook = XLSX.read(data, {type: 'binary'});
+      var names = []
+
+      workbook.SheetNames.forEach(function(sheetName){
+            var XL_row_object = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+            XL_row_object.forEach(function(row) {
+              for (var key in row) {
+                var name = row[key].toLowerCase()
+                if (names.indexOf(name) === -1) {
+                  document.getElementById('list').innerHTML += '<ul>' + name + '</ul>';
+                  names.push(name);
+                }
+              }
+            });
+        });
+    };
+    reader.readAsBinaryString(f);
+  }
+}
+  // // Setup the dnd listeners.
+  var dropZone = document.getElementById('drop_zone');
+  dropZone.addEventListener('dragover', handleDragOver, false);
+  dropZone.addEventListener('drop', handleDrop, false);
+</script>
+</html>
